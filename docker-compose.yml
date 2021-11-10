@@ -1,0 +1,38 @@
+version: '3'
+
+volumes: 
+    cache:
+      driver: local
+    config:
+       driver: local
+    ssh:
+       driver: local
+
+services:
+     borg:
+       image: trydirect/borgbackup:latest
+       volumes:
+         # Borg internals
+         - cache:/root/.cache/borg
+         - config:/root/.config/borg
+         - ssh:/root/.ssh
+       
+         # Mount the folder you wish to backup, to any folder inside
+         # the container (suggested: /borg/source)      
+         - /home:/borg/source/home
+         - /etc:/borg/source/etc
+         - /root:/borg/source/root
+         - /var/lib/docker/volumes:/borg/source/docker/volumes
+         - /var/spool/cron/:/borg/source/cron
+         
+         # Mount SSH Keys & config
+         - /root/.ssh/id_rsa:/root/.ssh/id_rsa:ro
+         - ./ssh/config:/root/.ssh/config 
+
+       environment:
+         BORG_REPO: "ssh://${user}@${user}.your-storagebox.de:23/./${repo}"
+         BORG_UNKNOWN_UNENCRYPTED_REPO_ACCESS_IS_OK: "yes"
+
+       command: create --stats --progress --compression lz4 ::"${archive}-{now:%Y-%m-%d_%H:%M:%S}" /borg/source
+
+
