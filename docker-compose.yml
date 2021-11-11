@@ -11,6 +11,7 @@ volumes:
 services:
      borg:
        image: trydirect/borgbackup:latest
+       container-name: borgbackup
        volumes:
          # Borg internals
          - cache:/root/.cache/borg
@@ -33,6 +34,6 @@ services:
          BORG_REPO: "ssh://${user}@${user}.your-storagebox.de:23/./${repo}"
          BORG_UNKNOWN_UNENCRYPTED_REPO_ACCESS_IS_OK: "yes"
 
-       command: create --stats --progress --compression lz4 ::"${archive}-{now:%Y-%m-%d_%H:%M:%S}" /borg/source
+       command: create --stats --progress --exclude-caches --compression lz4 ::"${archive}-{now:%Y-%m-%d_%H:%M:%S}" /borg/source
 
 
